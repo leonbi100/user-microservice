@@ -14,7 +14,6 @@ from flask_jwt_extended import (
 from users_backend.app import api
 
 user_namespace = Namespace('users', description='Users operations API')
-token_namespace = Namespace('token', description='Users operations API')
 
 get_user_model = user_namespace.model('Get Single User Model', {
     'id': fields.String,
@@ -69,6 +68,8 @@ class UserLogin(Resource):
         Login and return an Authorization header
         '''
         res = request.get_json()
+        if not res['email']:
+            abort(400)
         user = User.query.filter_by(email=res['email']).first()
         if not user:
             abort(404, "No account with email {}".format(res['email']))
@@ -119,7 +120,7 @@ class LogOut(Resource):
         return make_response(resp, 200)
         
 
-@token_namespace.route('/refresh')
+@user_namespace.route('/token/refresh')
 class RefreshToken(Resource):
     @jwt_refresh_token_required
     def post(self):
