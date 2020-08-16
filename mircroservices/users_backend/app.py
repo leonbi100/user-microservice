@@ -1,21 +1,24 @@
 from flask import Flask
-from flask_marshmallow import Marshmallow
-from flask_bcrypt import Bcrypt
 from flask_restplus import Api
-from flask_sqlalchemy import SQLAlchemy
-from users_backend import app
+from flask_jwt_extended import JWTManager
 
-bcrypt = Bcrypt(app)
-db = SQLAlchemy(app)
-db.create_all()
-ma = Marshmallow(app)
+app = Flask(__name__)
+app.config['RESTPLUS_MASK_SWAGGER'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/sync_video_users'
+app.config['PROPAGATE_EXCEPTIONS'] = True
+
+app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+app.config['JWT_COOKIE_SECURE'] = False
+app.config['JWT_ACCESS_COOKIE_PATH'] = '/user/'
+app.config['JWT_REFRESH_COOKIE_PATH'] = '/user/token/refresh'
+app.config['JWT_COOKIE_CSRF_PROTECT'] = True
+app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
+jwt = JWTManager(app)
 
 
 api = Api(app, version='0.1', title='Users Backend API',
             description='User API for Video Sync App')
 
-app.config['RESTPLUS_MASK_SWAGGER'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/sync_video_users'
-
-from users_backend.api_namespace import api_namespace
-api.add_namespace(api_namespace)
+from users_backend.api_namespace import user_namespace, token_namespace
+api.add_namespace(user_namespace)
+api.add_namespace(token_namespace)
